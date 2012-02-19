@@ -1,0 +1,9 @@
+{
+    "name": "ecomapi",
+    "version": "0.0.1",
+    "dependencies": {
+        "express": "2.5.6",
+        "mongodb": "0.9.8-6 ",
+        "mongoose": "2.5.5"
+    }
+}
