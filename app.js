@@ -7,6 +7,7 @@ var app = express.createServer();
 
 
 // config
+var port = process.env.PORT || 4242;
 
 app.configure(function () {
   app.use(express.bodyParser());
@@ -289,4 +290,6 @@ app.delete('/api/products/:id', function (req, res) {
 
 // launch server
 
-app.listen(4242);
+app.listen(port, function() {
+  console.log("Listening on " + port);
+});
