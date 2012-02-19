@@ -107,7 +107,7 @@ var ProductModel = mongoose.model('Product', Product);
       { "name": "Clothes" },  
       { "name": "Shirts" }  
   ],  
-  "style": "S1234",  
+  "style": "1234",  
   "variants": [  
     {  
       "color": "Black",  
@@ -176,6 +176,8 @@ app.post('/api/products', function (req, res) {
 });
 
 // PUT to UPDATE
+
+// Bulk update
 app.put('/api/products', function (req, res) {
     var i, len = 0;
     console.log("is Array req.body.products");
@@ -202,6 +204,7 @@ app.put('/api/products', function (req, res) {
     return res.send(req.body.products);
 });
 
+// Single update
 app.put('/api/products/:id', function (req, res) {
   return ProductModel.findById(req.params.id, function (err, product) {
     product.title = req.body.title;
@@ -223,6 +226,8 @@ app.put('/api/products/:id', function (req, res) {
 });
 
 // GET to READ
+
+// List products
 app.get('/api/products', function (req, res) {
   return ProductModel.find(function (err, products) {
     if (!err) {
@@ -233,6 +238,7 @@ app.get('/api/products', function (req, res) {
   });
 });
 
+// Single product
 app.get('/api/products/:id', function (req, res) {
   return ProductModel.findById(req.params.id, function (err, product) {
     if (!err) {
@@ -244,6 +250,8 @@ app.get('/api/products/:id', function (req, res) {
 });
 
 // DELETE to DESTROY
+
+// Bulk destroy all products
 app.delete('/api/products', function (req, res) {
   ProductModel.remove(function (err) {
     if (!err) {
@@ -255,6 +263,7 @@ app.delete('/api/products', function (req, res) {
   });
 });
 
+// remove a single product
 app.delete('/api/products/:id', function (req, res) {
   return ProductModel.findById(req.params.id, function (err, product) {
     return product.remove(function (err) {
@@ -267,7 +276,6 @@ app.delete('/api/products/:id', function (req, res) {
     });
   });
 });
-
 
 // launch server
 
