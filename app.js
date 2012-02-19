@@ -5,9 +5,6 @@ var application_root = __dirname,
 
 var app = express.createServer();
 
-// database
-
-mongoose.connect('mongodb://localhost/ecomm_database');
 
 // config
 
@@ -17,6 +14,19 @@ app.configure(function () {
   app.use(app.router);
   app.use(express.static(path.join(application_root, "public")));
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+  // database
+  mongoose.connect('mongodb://localhost/ecomm_database');
+});
+
+app.configure('development', function(){
+  app.use(express.static(__dirname + '/public'));
+  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+});
+
+app.configure('production', function(){
+  app.use(express.errorHandler());
+  // database
+  mongoose.connect('mongodb://pixelhandler:hPeHr.687@staff.mongohq.com:10097/app1906860');
 });
 
 var Schema = mongoose.Schema; //Schema.ObjectId
