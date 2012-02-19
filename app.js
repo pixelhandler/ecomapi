@@ -1,13 +1,17 @@
 var application_root = __dirname,
     express = require("express"),
     path = require("path"),
-    mongoose = require('mongoose');
+    mongoose = require('mongoose'),
+    app = express.createServer(),
+    port = process.env.PORT || 4242,
+    mongoUri = process.env.MONGOHQ_URL || 'mongodb://localhost/ecomm_database';
+    // 'mongodb://pixelhandler:XXXXX@staff.mongohq.com:10097/app1906860'
 
-var app = express.createServer();
+// database
 
+mongoose.connect(mongoUri);
 
 // config
-var port = process.env.PORT || 4242;
 
 app.configure(function () {
   app.use(express.bodyParser());
