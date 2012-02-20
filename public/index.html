@@ -3,69 +3,145 @@
   <head>
     <meta charset="utf-8">
     <title>API index</title>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="description" content="ecomm api application">
-    <meta name="author" content="Bill Heaton">
-
-    <!--[if lt IE 9]>
-      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-
-    <!-- Le fav and touch icons -->
-    <link rel="shortcut icon" href="images/favicon.ico">
-    <link rel="apple-touch-icon" href="images/apple-touch-icon-iphone.png" />
-    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-ipad.png" />
-    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-iphone4.png" />
-
-    <link rel="stylesheet/less" type="text/css" href="less/bootstrap.less">
-    <style>
-      body {
-        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-      }
-    </style>
-    <link rel="stylesheet/less" type="text/css" href="less/responsive.less">
-    <script src="javascript/less-1.2.1.min.js"></script>
-    <script src="javascript/modernizr.js"></script>
-
   </head>
-
   <body>
-
-    <div class="navbar navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-          </a>
-          <a class="brand" href="#">
-            <img src="images/pixelhandler-logo.png" width="30"
-            height="30" alt="PixelHandler" />
-          </a>
-          <div class="nav-collapse">
-            <ul class="nav">
-              <li class="active"><a href="#">Index</a></li>
-            </ul>
-          </div><!--/.nav-collapse -->
-        </div>
-      </div>
-    </div>
-
-    <div id="container">
-
+    <section id="api">
+      <h1>Nouns...</h1>
+      <p>
+        /products<br>
+        /products/:id
+      </p>
+    </section>
+    <section id="container">
       <h1>Product List</h1>
+    </section> <!-- /container -->
 
-    </div> <!-- /container -->
-
-    <script src="javascript/jquery-1.7.min.js"></script>
-    <script src="javascript/underscore-min.js"></script>
-    <script src="javascript/backbone.js"></script>
-    <script src="javascript/mustache.js"></script>
-    <script src="javascript/frontend.js"></script>
-    
     <script type="text/template" id="product-template">
-        <p>{{title}}</p>
+        <p><a href="products/{{_id}}">{{title}}</a></p>
         <p>{{description}}</p>
+    </script>
+
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.3.1/underscore-min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/backbone.js/0.9.0/backbone-min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/mustache.js/0.3.0/mustache.min.js"></script>
+    <script>
+        PX = window.PX || {};
+
+        // model
+        PX.Product = Backbone.Model.extend({
+            defaults: {
+                title: null,
+                description: null
+            }
+        });
+
+        // collection
+        (function () {
+            var ProductList;
+
+            ProductList = Backbone.Collection.extend({
+                model: PX.Product,
+                url: '/api/products',
+                initialize: function () {
+                    this.fetch({
+                        success: this.fetchSuccess,
+                        error: this.fetchError
+                    });
+                    this.deferred = new $.Deferred();
+                },
+                deferred: Function.constructor.prototype,
+                fetchSuccess: function (collection, response) {
+                    collection.deferred.resolve();
+                },
+                fetchError: function (collection, response) {
+                    throw new Error("Products fetch did get collection from API");
+                }
+            });
+
+            PX.products = new ProductList();
+            ProductList = null;
+        }());
+
+
+        PX.ProductListItemView = Backbone.View.extend({
+            tagName: "li",
+            className: "product",
+            events: {
+                "click": "showProductDetails"
+            },
+            initialize: function (options) {
+                this.template = $('#product-template').html();
+            },
+            render: function () {
+                var markup = Mustache.to_html(this.template, this.model.toJSON());
+                this.$el.html(markup).attr('id',this.model.get('_id'));
+                return this;
+            },
+            showProductDetails: function(event) {
+                var targ = $(event.target), pid = targ.attr(id), dest;
+                event.preventDefault();
+                dest = "products/" + ( (pid) ? pid : targ.closest('li').attr('id') );
+                console.log("Show product details: " + pid);
+                PX.app.navigate(dest);
+            }
+        });
+
+        PX.ProductListView = Backbone.View.extend({
+            tagName: "ul",
+            className: "products",
+            render: function () {
+                for (var i = 0; i < this.collection.length; i++) {
+                    this.renderItem(this.collection.models[i]);
+                };
+                $(this.container).find(this.className).remove();
+                this.$el.appendTo(this.options.container);
+                return this;
+            },
+            renderItem: function (model) {
+                var item = new PX.ProductListItemView({
+                    "model": model
+                });
+                item.render().$el.appendTo(this.$el);
+            }
+        });
+
+        PX.ProductDetailsView = Backbone.View.extend({
+            el: "#container",
+            initialize: function (options) {
+                this.render();
+            },
+            render: function () {
+                this.$el.html("TODO ADD A PRODUCT DETAILS Model, View and Template")
+            }
+        });
+
+        // application
+        PX.App = Backbone.Router.extend({
+            routes: {
+                "/": "listProducts",
+                "list": "listProducts",
+                "products/:id": "showProductDetails"
+            },
+            //initialize: function (options) {},
+            listProducts: function () {
+                var productsList = new PX.ProductListView({
+                    "container": $('#container'),
+                    "collection": PX.products
+                });
+                PX.products.deferred.done(function () {
+                    productsList.render();
+                });
+            },
+            showProductDetails: function () {
+                var productDetails = new PX.ProductDetailsView();
+            }
+        });
+
+        // bootstrap
+        PX.app = new PX.App();
+        Backbone.history.start();
+
     </script>
 
   </body>
