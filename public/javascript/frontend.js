@@ -36,9 +36,12 @@ PX.Product = Backbone.Model.extend({
 }());
 
 
-PX.ProductView = Backbone.View.extend({
+PX.ProductListItemView = Backbone.View.extend({
     tagName: "li",
     className: "product",
+    events: {
+        "click": "showProductDetails"
+    },
     initialize: function (options) {
         this.template = $('#product-template').html();
     },
@@ -46,18 +49,21 @@ PX.ProductView = Backbone.View.extend({
         var markup = Mustache.to_html(this.template, this.model.toJSON());
         this.$el.html(markup).attr('id',this.model.get('_id'));
         return this;
+    },
+    showProductDetails: function(event) {
+        var targ = $(event.target), pid = targ.attr(id), dest;
+        event.preventDefault();
+        dest = "products/" + ( (pid) ? pid : targ.closest('li').attr('id') );
+        console.log("Show product details: " + pid);
+        PX.app.navigate(dest);
     }
 });
 
 PX.ProductListView = Backbone.View.extend({
     tagName: "ul",
     className: "products",
-    // initialize: function (options) {
-    //     this.container = options.container;
-    // },
     render: function () {
-        var i, len = this.collection.length;
-        for (i=0; i < len; i++) {
+        for (var i = 0; i < this.collection.length; i++) {
             this.renderItem(this.collection.models[i]);
         };
         $(this.container).find(this.className).remove();
@@ -65,10 +71,20 @@ PX.ProductListView = Backbone.View.extend({
         return this;
     },
     renderItem: function (model) {
-        var item = new PX.ProductView({
+        var item = new PX.ProductListItemView({
             "model": model
         });
         item.render().$el.appendTo(this.$el);
+    }
+});
+
+PX.ProductDetailsView = Backbone.View.extend({
+    el: "#container",
+    initialize: function (options) {
+        this.render();
+    },
+    render: function () {
+        this.$el.html("TODO ADD A PRODUCT DETAILS Model, View and Template")
     }
 });
 
@@ -76,7 +92,8 @@ PX.ProductListView = Backbone.View.extend({
 PX.App = Backbone.Router.extend({
     routes: {
         "/": "listProducts",
-        "list": "listProducts"
+        "list": "listProducts",
+        "products/:id": "showProductDetails"
     },
     //initialize: function (options) {},
     listProducts: function () {
@@ -87,6 +104,9 @@ PX.App = Backbone.Router.extend({
         PX.products.deferred.done(function () {
             productsList.render();
         });
+    },
+    showProductDetails: function () {
+        var productDetails = new PX.ProductDetailsView();
     }
 });
 
